@@ -13,7 +13,7 @@ public class SelectQueryExample {
             ResultSet rs = stmt.executeQuery("SELECT * FROM employee");
 
             while(rs.next()) {
-                System.out.println("Name: " + rs.getString("name") +
+                System.out.println("Id: " + rs.getInt("id") + ", Name: " + rs.getString("name") +
                         ", Salary: " + rs.getDouble("salary"));
             }
 

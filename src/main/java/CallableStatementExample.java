@@ -3,7 +3,7 @@ import java.sql.*;
 public class CallableStatementExample {
     public static void main(String[] args) {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+           // Class.forName("com.mysql.cj.jdbc.Driver");
 
             Connection con = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/jdbc_test", "root", "");
@@ -38,8 +38,6 @@ public class CallableStatementExample {
             con.close();
 
         } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
