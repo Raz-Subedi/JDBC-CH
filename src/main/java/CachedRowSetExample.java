@@ -1,70 +1,67 @@
-
 import javax.sql.rowset.CachedRowSet;
-import javax.sql.rowset.RowSetFactory;
 import javax.sql.rowset.RowSetProvider;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class CachedRowSetExample {
     public static void main(String[] args) {
         String url = "jdbc:mysql://localhost:3306/jdbc_test";
-        String user = "root";
+        String username = "root";
         String password = "";
 
-        try {
+        try (Connection connection = DriverManager.getConnection(url, username, password)) {
             // Create a CachedRowSet
-            RowSetFactory rsf = RowSetProvider.newFactory();
-            CachedRowSet rowSet = rsf.createCachedRowSet();
-            // Set connection details
+            CachedRowSet rowSet = RowSetProvider.newFactory().createCachedRowSet();
+
+            // Set connection properties
             rowSet.setUrl(url);
-            rowSet.setUsername(user);
+            rowSet.setUsername(username);
             rowSet.setPassword(password);
 
-            // Set the SQL query
+            // Set the query to fetch data
             rowSet.setCommand("SELECT id, name, salary FROM employee");
 
-            // Execute the query and populate the RowSet
+            // Execute the query and fetch data into the CachedRowSet
             rowSet.execute();
 
-            // Print initial data
-            System.out.println("Initial Data:");
-            printEmployeeData(rowSet);
+            // Disconnect from the database
+            System.out.println("Data fetched. Now working offline...");
 
-            // Add a new employee (offline)
-            rowSet.moveToInsertRow(); // Prepare to insert a new row
-            rowSet.updateInt("id", 101); // Set ID (primary key)
-            rowSet.updateString("name", "Alice"); // Set name
-            rowSet.updateDouble("salary", 75000.0); // Set salary
-            rowSet.insertRow(); // Insert the new row
-            rowSet.moveToCurrentRow(); // Return to the current row
+            // Iterate through the data
+            while (rowSet.next()) {
+                System.out.println("ID: " + rowSet.getInt("id") +
+                        ", Name: " + rowSet.getString("name") +
+                        ", Salary: " + rowSet.getDouble("salary"));
+            }
 
-            // Update an employee's salary (offline)
-            rowSet.absolute(1); // Move to the first row
-            rowSet.updateDouble("salary", 85000.0); // Update salary
-            rowSet.updateRow(); // Commit the update
+            // Update a row offline
+            rowSet.absolute(2); // Move to the 2nd row
+            rowSet.updateDouble("salary", rowSet.getDouble("salary") + 700);
+            rowSet.updateRow();
 
-            // Delete an employee (offline)
-            rowSet.absolute(2); // Move to the second row
-            rowSet.deleteRow(); // Delete the row
+            // Insert a new row offline
+            rowSet.moveToInsertRow();
+            rowSet.updateInt("id", 66);
+            rowSet.updateString("name", "Alice");
+            rowSet.updateDouble("salary", 2500);
+            rowSet.insertRow();
+//            rowSet.moveToCurrentRow();
 
-            // Sync changes back to the database
-            rowSet.acceptChanges();
+            // Delete a row offline
+            rowSet.absolute(2);
+            rowSet.deleteRow();
+            System.out.println("Deleted 3rd row");
 
-            // Print updated data
-            System.out.println("\nUpdated Data:");
-            printEmployeeData(rowSet);
+            // **Reconnect to the database and sync changes**
+            try (Connection syncConnection = DriverManager.getConnection(url, username, password)) {
+                System.out.println("Reconnecting to the database to sync changes...");
+                rowSet.acceptChanges(syncConnection); // Pass the active connection
+                System.out.println("Changes synchronized successfully.");
+            }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        }
-    }
-
-    // Helper method to print employee data
-    private static void printEmployeeData(CachedRowSet rowSet) throws Exception {
-        rowSet.beforeFirst(); // Move cursor before the first row
-        while (rowSet.next()) {
-            int id = rowSet.getInt("id");
-            String name = rowSet.getString("name");
-            double salary = rowSet.getDouble("salary");
-            System.out.println("ID: " + id + ", Name: " + name + ", Salary: " + salary);
         }
     }
 }

@@ -5,8 +5,7 @@ import java.sql.SQLException;
 public class JdbcExample {
     public static void main(String[] args) throws ClassNotFoundException {
 
-        //Class.forName("com.mysql.cj.jdbc.Driver");
-
+        //Class.forName("com.mysql.cj.jdbc.Driver")
         String url = "jdbc:mysql://localhost:3306/jdbc_test";
         String user = "root";
         String password = "";

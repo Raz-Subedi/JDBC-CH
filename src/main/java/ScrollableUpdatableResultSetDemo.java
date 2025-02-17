@@ -28,7 +28,7 @@ public class ScrollableUpdatableResultSetDemo {
 
             // Insert a new row
             rs.moveToInsertRow();
-            rs.updateInt("id", 101); // Set ID (ensure it's unique)
+            rs.updateInt("id", 110); // Set ID (ensure it's unique)
             rs.updateString("name", "New Employee");
             rs.updateDouble("salary", 5000);
             rs.insertRow();
@@ -45,6 +45,10 @@ public class ScrollableUpdatableResultSetDemo {
             rs.afterLast(); // Move to after last row
             while (rs.previous()) {
                 System.out.println(rs.getInt("id") + " - " + rs.getString("name") + " - " + rs.getDouble("salary"));
+            }
+
+            while (rs.next()) {
+                System.out.println(rs.getInt("id") + " - " + rs.getString("name"));
             }
 
         } catch (SQLException e) {
